@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="EdmontonTransit.Database.Entities.BusStop">
+    <Position X="7.75" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAAAAIAIIAAAACAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="CityLandmark" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.BusRoute">
+    <Position X="2.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAACAAAAAAAAAAAAACAAIAAAAAAAAAQAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.BusTransfer">
+    <Position X="11" Y="3.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAggAAggABAAAAAIAAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="FromStop" />
+      <Property Name="ToStop" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.CityLandmark">
+    <Position X="7.75" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQACAAAAIACAAAAAAAAAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.ServiceChange">
+    <Position X="0.5" Y="3.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAAAAAEAAAgACCAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="BusRoute" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.ScheduledStop">
+    <Position X="6.5" Y="6.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAEEAAAAIAIAAAEAAQAAAAAAAAAAAAAAEBAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Trip" />
+      <Property Name="BusStop" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="EdmontonTransit.Database.Entities.Trip">
+    <Position X="3.75" Y="3.25" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAAAIAAAAAAACQAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Database\Entities\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="BusRoute" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
