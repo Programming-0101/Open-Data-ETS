@@ -17,6 +17,7 @@ namespace EdmontonTransit.OpenData.Adapters
              * #1 Field Ambulance Edmonton Garrison,Edmonton Garrison,7404,53.680786285493298,-113.48305992153099,"(53.6807862854933, -113.483059921531)"
              */
             // Special handling of exceptional cases
+            row = row.Replace("\"(", "(").Replace(")\"", ")");
             if (row.Contains(", The \""))
                 row = row.Replace(", The \"", "").Replace("\"", "The ");
             if (row.Contains(", The\""))
@@ -36,7 +37,7 @@ namespace EdmontonTransit.OpenData.Adapters
                 StopId = int.Parse(csvData[2]),
                 Latitude = double.Parse(csvData[3]),
                 Longitude = double.Parse(csvData[4]),
-                Location = csvData[5]
+                Location = (csvData[5] + ", " + csvData[6])
             };
         }
     }

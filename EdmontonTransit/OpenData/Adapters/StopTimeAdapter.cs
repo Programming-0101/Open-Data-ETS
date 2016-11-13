@@ -26,7 +26,9 @@ namespace EdmontonTransit.OpenData.Adapters
             return new StopTime()
             {
                 TripId = int.Parse(csvData[0]),
+                Arrival = csvData[1],
                 ArrivalTime = ParseTimeSpan(csvData[1]),
+                Departure = csvData[2],
                 DepartureTime = ParseTimeSpan(csvData[2]),
                 StopId = int.Parse(csvData[3]),
                 StopSequence = int.Parse(csvData[4]),

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace EdmontonTransit.OpenData.ApiModels
 {
+    public enum MonthOfYear { JAN = 1, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC }
+
     /// <summary>
     /// 
     /// </summary>
@@ -24,6 +26,31 @@ namespace EdmontonTransit.OpenData.ApiModels
         public string Date { get; set; }
         /// <summary>Indicates whether service is available on the date specified in the date field.</summary>
         public int ExceptionType { get; set; }
+
+        // Derived items from spliting the ServiceId
+        public int BusRouteId { get { return int.Parse(ServiceId.Split('-')[0]); } }
+        public DateTime ChangeDate
+        {
+            get
+            {
+                var parts = ServiceId.Split('-');
+                int day = int.Parse(parts[2]);
+                int year = int.Parse(parts[3].Substring(3)) + 2000;
+                int month = (int)(MonthOfYear)Enum.Parse(typeof(MonthOfYear), parts[3].Substring(0, 3));
+                return new DateTime(year,month, day);
+            }
+        }
+
+        public DateTime CreatedDate
+        {
+            get
+            {
+                int day = int.Parse(Date.Substring(6,2));
+                int year = int.Parse(Date.Substring(0, 4));
+                int month = int.Parse(Date.Substring(4,2));
+                return new DateTime(year, month, day);
+            }
+        }
     }
 
 }

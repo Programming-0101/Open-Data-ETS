@@ -19,7 +19,9 @@ namespace EdmontonTransit.OpenData.ApiModels
     {
         /// <summary>ID that identifies a trip - it is unique.</summary>
         public int TripId { get; set; }
+        public string Arrival { get; set; }
         public TimeSpan ArrivalTime { get; set; }
+        public string Departure { get; set; }
         /// <summary>Specifies the departure time from a specific stop for a specific trip on a route</summary>
         public TimeSpan DepartureTime { get; set; }
         /// <summary>ID that uniquely identifies a stop. Multiple routes may use the same stop.</summary>
@@ -34,5 +36,17 @@ namespace EdmontonTransit.OpenData.ApiModels
         /// <summary>Indicates if passengers are dropped off or drop-off at stop is not available.</summary>
         [Description("Drop off")]
         public BoardingType DropOffType { get; set; }
+
+        public int? RouteId
+        {
+            get
+            {
+                int id;
+                if (int.TryParse(StopHeadsign.Split(' ')[0], out id))
+                    return id;
+                else
+                    return null;
+            }
+        }
     }
 }
