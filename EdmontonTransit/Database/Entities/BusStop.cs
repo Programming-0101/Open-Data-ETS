@@ -19,13 +19,12 @@ namespace EdmontonTransit.Database.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int BusStopId { get; set; }
-        public int? CityLandmarkId { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string Location { get; set; }
 
         #region Navivation Properties
-        public virtual IEnumerable<CityLandmark> CityLandmarks { get; set; }
+        public virtual ICollection<CityLandmark> CityLandmarks { get; set; }
         #endregion
     }
     [Table("BusRoutes")]
@@ -44,8 +43,8 @@ namespace EdmontonTransit.Database.Entities
         public string LongName { get; set; }
 
         #region NavigationProperties
-        public virtual IEnumerable<Trip> Trips { get; set; }
-        public virtual IEnumerable<ServiceChange> ServiceChanges { get; set; }
+        public virtual ICollection<Trip> Trips { get; set; }
+        public virtual ICollection<ServiceChange> ServiceChanges { get; set; }
         #endregion
     }
     [Table("BusTransfers")]
@@ -76,7 +75,7 @@ namespace EdmontonTransit.Database.Entities
         public string Address { get; set; }
 
         #region Navigation Properties
-        public virtual IEnumerable<BusStop> BusStops { get; set; }
+        public virtual ICollection<BusStop> BusStops { get; set; }
         #endregion
     }
     [Table("ServiceChanges")]
@@ -117,15 +116,43 @@ namespace EdmontonTransit.Database.Entities
         public Trip()
         {
             ScheduledStops = new HashSet<ScheduledStop>();
+            BusRoutes = new HashSet<BusRoute>();
         }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int TripId { get; set; }
-        public int? BusRouteId { get; set; }
 
         #region Navigation Properties
-        public virtual BusRoute BusRoute { get; set; }
-        public virtual IEnumerable<ScheduledStop> ScheduledStops { get; set; }
+        public virtual ICollection<BusRoute> BusRoutes { get; set; }
+        public virtual ICollection<ScheduledStop> ScheduledStops { get; set; }
         #endregion
+    }
+    [Table("BusRouteTrips")]
+    public class BusRouteTrip
+    {
+        [Key, Column(Order = 0)]
+        public int BusRouteId { get; set; }
+        [Key, Column(Order = 1)]
+        public int TripId { get; set; }
+    }
+
+    public class BusRouteTripComparer : EqualityComparer<BusRouteTrip>
+    {
+        public override bool Equals(BusRouteTrip x, BusRouteTrip y)
+        {
+            if (x == null && y == null) return true;
+            if (x == null || y == null) return false;
+            return x.BusRouteId == y.BusRouteId && x.TripId == y.TripId;
+        }
+
+        public override int GetHashCode(BusRouteTrip obj)
+        {
+            // also read tip from http://stackoverflow.com/a/263416/2154662
+            unchecked // Overflow is fine, just wrap
+            {
+                if (obj == null) return 0;
+                return obj.BusRouteId.GetHashCode() ^ obj.TripId.GetHashCode();
+            }
+        }
     }
 }
