@@ -32,7 +32,6 @@ namespace EdmontonTransit.Database.Entities
     {
         public BusRoute()
         {
-            Trips = new HashSet<Trip>();
             ServiceChanges = new HashSet<ServiceChange>();
         }
 
@@ -43,7 +42,6 @@ namespace EdmontonTransit.Database.Entities
         public string LongName { get; set; }
 
         #region NavigationProperties
-        public virtual ICollection<Trip> Trips { get; set; }
         public virtual ICollection<ServiceChange> ServiceChanges { get; set; }
         #endregion
     }
@@ -100,6 +98,7 @@ namespace EdmontonTransit.Database.Entities
         public string ArrivalTime { get; set; }
         public string DepartureTime { get; set; }
         public int BusStopId { get; set; }
+        public int? BusRouteId { get; set; }
         public int TripId { get; set; }
         public short Sequence { get; set; }
         public BoardingType PickupType { get; set; }
@@ -107,6 +106,7 @@ namespace EdmontonTransit.Database.Entities
 
         #region Navigation Properties
         public virtual BusStop BusStop { get; set; }
+        public virtual BusRoute BusRoute {get;set;}
         public virtual Trip Trip { get; set; }
         #endregion
     }
@@ -116,43 +116,13 @@ namespace EdmontonTransit.Database.Entities
         public Trip()
         {
             ScheduledStops = new HashSet<ScheduledStop>();
-            BusRoutes = new HashSet<BusRoute>();
         }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int TripId { get; set; }
 
         #region Navigation Properties
-        public virtual ICollection<BusRoute> BusRoutes { get; set; }
         public virtual ICollection<ScheduledStop> ScheduledStops { get; set; }
         #endregion
-    }
-    [Table("BusRouteTrips")]
-    public class BusRouteTrip
-    {
-        [Key, Column(Order = 0)]
-        public int BusRouteId { get; set; }
-        [Key, Column(Order = 1)]
-        public int TripId { get; set; }
-    }
-
-    public class BusRouteTripComparer : EqualityComparer<BusRouteTrip>
-    {
-        public override bool Equals(BusRouteTrip x, BusRouteTrip y)
-        {
-            if (x == null && y == null) return true;
-            if (x == null || y == null) return false;
-            return x.BusRouteId == y.BusRouteId && x.TripId == y.TripId;
-        }
-
-        public override int GetHashCode(BusRouteTrip obj)
-        {
-            // also read tip from http://stackoverflow.com/a/263416/2154662
-            unchecked // Overflow is fine, just wrap
-            {
-                if (obj == null) return 0;
-                return obj.BusRouteId.GetHashCode() ^ obj.TripId.GetHashCode();
-            }
-        }
     }
 }

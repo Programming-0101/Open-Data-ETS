@@ -20,6 +20,7 @@ namespace EdmontonTransit
         private static IList<Landmark> _Landmarks;
         private static IList<Transfer> _Transfers;
         private static IList<CalendarDate> _CalendarDates;
+
         static void Main(string[] args)
         {
             Console.WriteLine("Loading data from files.....");
@@ -27,6 +28,7 @@ namespace EdmontonTransit
             Console.WriteLine("Saving data to database.....");
             SaveData();
         }
+
         private static void SaveBusRoutes()
         {
             using (var context = new EdmontonTransitContext())
@@ -54,6 +56,7 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tSaved {busRoutes.Count()} BusRoutes");
             }
         }
+
         private static void SaveBusTransfers()
         {
             using (var context = new EdmontonTransitContext())
@@ -74,6 +77,7 @@ namespace EdmontonTransit
 
             }
         }
+
         private static void SaveBusStops()
         {
             using (var context = new EdmontonTransitContext())
@@ -89,6 +93,7 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tSaved {otherbusStops.Count()} BusStops");
             }
         }
+
         private static void SaveCityLandmarks()
         {
             using (var context = new EdmontonTransitContext())
@@ -105,10 +110,12 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tSaved {cityLandmarks.Count()} CityLandmarks");
             }
         }
+
         private static void UpdateBusStops()
         {
             using (var context = new EdmontonTransitContext())
             {
+                // TODO: Use OpenRowSet to improve performance https://msdn.microsoft.com/en-us/library/ms175915(v=sql.110).aspx
                 var busStops = from place in _Landmarks
                                group place by new { place.StopId, place.Longitude, place.Latitude, place.Location } into stop
                                select new BusStop
@@ -145,10 +152,12 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tUpdated {updateCount} BusStops ({duplicate} duplcates) and added {addCount} new BusStops");
             }
         }
+
         private static void UpdateBusStopsWithLandmarks()
         {
             using (var context = new EdmontonTransitContext())
             {
+                // TODO: Use OpenRowSet to improve performance https://msdn.microsoft.com/en-us/library/ms175915(v=sql.110).aspx
                 var cityLandmarks = from city in _Landmarks
                                     group city by new { city.LandmarkName, city.Address } into place
                                     select new
@@ -187,6 +196,7 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tUpdated {updateCount} BusStops for CityLandmarks \n\t\twith {landmarkWithoutStop} orphaned BusStops \n\t\tand {unknownLandmark} unknown CityLandmarks");
             }
         }
+
         private static void SaveTrips()
         {
             using (var context = new EdmontonTransitContext())
@@ -215,6 +225,7 @@ namespace EdmontonTransit
                 }
             }
         }
+
         private static void SaveTrips2()
         {
             // NOTES: Bulk Insert possible through https://efbulkinsert.codeplex.com/
@@ -223,12 +234,9 @@ namespace EdmontonTransit
             {
                 SortedSet<int> lastTripId = new SortedSet<int>();
                 IList<Trip> trips = new List<Trip>();
-                HashSet<BusRouteTrip> busTrips = new HashSet<BusRouteTrip>(new BusRouteTripComparer());
 
                 Trip newTrip = null;
                 Dictionary<int, BusRoute> routeList = context.BusRoutes.ToDictionary(x => x.BusRouteId); // Load into memory
-                //BusRoute tripRoute = null;
-                //int batchCount = 0, itemCount = 0;
                 foreach (var stop in _StopTimes)
                 {
                     if (!lastTripId.Contains(stop.TripId))
@@ -238,29 +246,15 @@ namespace EdmontonTransit
                         trips.Add(newTrip);
                         // Track that it's added
                         lastTripId.Add(newTrip.TripId);
-                        // Add a new BusRouteTrip
-                        if (stop.RouteId.HasValue)
-                            busTrips.Add(new BusRouteTrip { BusRouteId = stop.RouteId.Value, TripId = newTrip.TripId });
-                    }
-                    else
-                    {
-                        if (newTrip != null)
-                        {
-                            // Add a new BusRouteTrip
-                            if (stop.RouteId.HasValue)
-                                busTrips.Add(new BusRouteTrip { BusRouteId = stop.RouteId.Value, TripId = newTrip.TripId });
-                        }
                     }
                 }
                 Console.WriteLine($"Created {trips.Count} Trip Items (before database insert)");
                 context.BulkInsert(trips);
                 Console.WriteLine($"Saved {trips.Count} Trip Items to the database in a bulk insert");
                 Console.WriteLine();
-                Console.WriteLine($"Created {busTrips.Count} BusRouteTrip Items (before database insert)");
-                context.BulkInsert(busTrips);
-                Console.WriteLine($"Saved {busTrips.Count} BusRouteTrip Items to the database in a bulk insert");
             }
         }
+
         private static void SaveScheduleStops()
         {
             using (var context = new EdmontonTransitContext())
@@ -270,6 +264,7 @@ namespace EdmontonTransit
                     scheduledStops.Add( new ScheduledStop
                                      {
                                          BusStopId = stop.StopId,
+                                         BusRouteId = stop.RouteId,
                                          ArrivalTime = stop.Arrival,
                                          DepartureTime = stop.Departure,
                                          DropOffType = stop.DropOffType,
@@ -282,68 +277,14 @@ namespace EdmontonTransit
                 Console.WriteLine($"\tSaved {scheduledStops.Count()} SheduledStops to database");
             }
         }
-        private static void SaveData()
+        private static void SaveServiceChanges()
         {
-            //SaveBusRoutes();
-            //SaveBusTransfers();
-            //SaveBusStops();
-            //SaveCityLandmarks();
-            //UpdateBusStops();
-            //UpdateBusStopsWithLandmarks();
-            //SaveTrips2();
-            SaveScheduleStops();
-
-            if (1 == 1 + 0) return;
             using (var context = new EdmontonTransitContext())
             {
-
-
-                var tripRoutes = from stop in _StopTimes
-                                 group stop by new { stop.TripId } into tripgrp
-                                 select new
-                                 {
-                                     TripId = tripgrp.Key.TripId,
-                                     routes = from data in tripgrp
-                                              group data by data.RouteId into smallgroup
-                                              where smallgroup.Key.HasValue
-                                              select smallgroup.Key.Value
-                                 };
-                IList<Trip> trips = new List<Trip>();
-                foreach (var item in tripRoutes)
-                {
-                    var newTrip = new Trip { TripId = item.TripId };
-                    foreach (var routeId in item.routes)
-                        newTrip.BusRoutes.Add(context.BusRoutes.Find(routeId));
-                    trips.Add(newTrip);
-                }
-                //var trips = from stop in _StopTimes
-                //            group stop by new { stop.TripId } into trip
-                //            select new Trip
-                //            {
-                //                TripId = trip.Key.TripId
-                //            };
-                context.Trips.AddRange(trips);
-                context.SaveChanges();
-
-                Console.WriteLine($"\tSaved {trips.Count()} Trips");
-                //var otherbusStops = from item in _StopTimes
-                //                    group item by item.StopId into stop
-                //                    //where !busStops.Any(x => x.BusStopId == stop.Key)
-                //                    select new BusStop
-                //                    {
-                //                        BusStopId = stop.Key
-                //                    };
-                //context.BusStops.AddRange(otherbusStops);
-                //context.SaveChanges();
-                //Console.WriteLine($"\tSaved {otherbusStops.Count()} BusStops");
-
-
-
                 var serviceChanges = from change in _CalendarDates
                                      select new ServiceChange
                                      {
                                          BusRouteId = change.BusRouteId,
-                                         //BusRoute = busRoutes.Single(x => x.BusRouteId == change.BusRouteId),
                                          ExceptionType = (ServiceExceptionType)change.ExceptionType,
                                          CreatedOn = change.CreatedDate,
                                          Date = change.ChangeDate
@@ -351,9 +292,20 @@ namespace EdmontonTransit
                 context.ServiceChanges.AddRange(serviceChanges);
                 context.SaveChanges();
                 Console.WriteLine($"\tSaved {serviceChanges.Count()} ServiceChanges");
-
             }
-            Console.WriteLine("Object graphs created");
+        }
+
+        private static void SaveData()
+        {
+            SaveBusRoutes();
+            SaveBusTransfers();
+            SaveBusStops();
+            SaveCityLandmarks();
+            UpdateBusStops();
+            UpdateBusStopsWithLandmarks();
+            SaveTrips2();
+            SaveScheduleStops();
+            Console.WriteLine("Object graphs created - Done Database Setup");
         }
 
         private static void LoadDataFiles()
@@ -376,6 +328,7 @@ namespace EdmontonTransit
             _CalendarDates = LoadThroughAdapter<CalendarDate>(new CalendarDateAdapter(FileFormat.CSV, Path.Combine(basePath, EtsDataFiles.CalendarDates), true));
             //Console.WriteLine($"Loaded {calendarDates.Count} Calendar Dates");
         }
+
         static IList<T> LoadThroughAdapter<T>(AbstractTextFileAdapter<T> adapter) where T : class
         {
             IList<T> result = adapter.Load() as IList<T>;
