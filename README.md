@@ -48,3 +48,15 @@ Rows of Trips
 Rows of ScheduledStops
 2011551
 ```
+
+---
+
+```sql
+select count(*) as 'Rows of BusRoutes' from BusRoutes
+select count(*) as 'Rows of BusTransfers' from BusTransfers
+select count(*) as 'Rows of BusStops' from BusStops
+select count(*) as 'Rows of CityLandmarks' from CityLandmarks
+select count(*) as 'Rows of BusStopLandmarks' from BusStopLandmarks
+select count(*) as 'Rows of Trips' from Trips
+select count(*) as 'Rows of ScheduledStops' from ScheduledStops
+```
