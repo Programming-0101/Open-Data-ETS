@@ -18,10 +18,12 @@ namespace EdmontonTransit.Database
         public DbSet<BusRoute> BusRoutes { get; set; }
         public DbSet<ServiceChange> ServiceChanges { get; set; }
         public DbSet<Trip> Trips { get; set; }
+        public DbSet<TripDestination> TripDestinations { get; set; }
         public DbSet<ScheduledStop> ScheduledStops { get; set; }
         public DbSet<BusStop> BusStops { get; set; }
         public DbSet<CityLandmark> CityLandmarks { get; set; }
         public DbSet<BusTransfer> BusTransfers { get; set; }
+        public DbSet<TransitCenter> TransitCenters { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

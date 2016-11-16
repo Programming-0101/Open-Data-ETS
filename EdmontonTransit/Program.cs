@@ -29,6 +29,18 @@ namespace EdmontonTransit
             SaveData();
         }
 
+        private static void SaveTransitCenters()
+        {
+            string[] terminals = { "Abbottsfield", "Belvedere", "Capilano", "Castle Downs", "Century Park", "Clareview", "Coliseum", "Eaux Claires", "Government Centre", "Jasper Place", "Kingsway/RAH", "Lakewood", "Leger", "Lewis Farms", "Meadowlark", "Meadows", "Mill Woods", "Millgate", "Northgate", "South Campus / Fort Edmonton", "Southgate", "Stadium", "University", "West Edmonton Mall", "Westmount"};
+            using (var context = new EdmontonTransitContext())
+            {
+                foreach (string name in terminals)
+                    context.TransitCenters.Add(new TransitCenter { Name = name });
+                context.SaveChanges();
+            }
+            Console.WriteLine($"\tSaved {terminals.Length} Transit Centers");
+        }
+
         private static void SaveBusRoutes()
         {
             using (var context = new EdmontonTransitContext())
@@ -53,7 +65,7 @@ namespace EdmontonTransit
                                      };
                 context.BusRoutes.AddRange(otherBusRoutes);
                 context.SaveChanges();
-                Console.WriteLine($"\tSaved {busRoutes.Count()} BusRoutes");
+                Console.WriteLine($"\tSaved {otherBusRoutes.Count()} BusRoutes");
             }
         }
 
@@ -149,7 +161,7 @@ namespace EdmontonTransit
                     }
                 }
                 context.SaveChanges();
-                Console.WriteLine($"\tUpdated {updateCount} BusStops ({duplicate} duplcates) and added {addCount} new BusStops");
+                Console.WriteLine($"\tUpdated {updateCount} BusStops ({duplicate} duplicates) and added {addCount} new BusStops");
             }
         }
 
@@ -197,6 +209,7 @@ namespace EdmontonTransit
             }
         }
 
+        [Obsolete("Too slow", true)]
         private static void SaveTrips()
         {
             using (var context = new EdmontonTransitContext())
@@ -248,10 +261,29 @@ namespace EdmontonTransit
                         lastTripId.Add(newTrip.TripId);
                     }
                 }
-                Console.WriteLine($"Created {trips.Count} Trip Items (before database insert)");
+                Console.WriteLine($"\tCreated {trips.Count} Trip Items (before database insert)");
                 context.BulkInsert(trips);
-                Console.WriteLine($"Saved {trips.Count} Trip Items to the database in a bulk insert");
+                Console.WriteLine($"\t\tSaved {trips.Count} Trip Items to the database in a bulk insert");
                 Console.WriteLine();
+            }
+        }
+
+        private static void SaveScheduledStopDestinations()
+        {
+            SortedSet<string> destinations = new SortedSet<string>();
+
+            foreach (var stop in _StopTimes)
+            {
+                if (!destinations.Contains(stop.Destination))
+                    destinations.Add(stop.Destination);
+            }
+
+            using (var context = new EdmontonTransitContext())
+            {
+                foreach (var place in destinations)
+                    context.TripDestinations.Add(new TripDestination { Name = place });
+                context.SaveChanges();
+                Console.WriteLine($"\tSaved {destinations.Count()} TripDestinations to database");
             }
         }
 
@@ -259,22 +291,27 @@ namespace EdmontonTransit
         {
             using (var context = new EdmontonTransitContext())
             {
+                var destinations = context.TripDestinations.ToDictionary<TripDestination, string>(item => item.Name);
+
                 IList<ScheduledStop> scheduledStops = new List<ScheduledStop>();
-                foreach(var stop in _StopTimes)
-                    scheduledStops.Add( new ScheduledStop
-                                     {
-                                         BusStopId = stop.StopId,
-                                         BusRouteId = stop.RouteId,
-                                         ArrivalTime = stop.Arrival,
-                                         DepartureTime = stop.Departure,
-                                         DropOffType = stop.DropOffType,
-                                         PickupType = stop.PickupType,
-                                         Sequence = (short)stop.StopSequence,
-                                         TripId = stop.TripId
-                                     });
+                foreach (var stop in _StopTimes)
+                {
+                    scheduledStops.Add(new ScheduledStop
+                    {
+                        BusStopId = stop.StopId,
+                        BusRouteId = stop.RouteId,
+                        ArrivalTime = stop.Arrival,
+                        DepartureTime = stop.Departure,
+                        DropOffType = stop.DropOffType,
+                        PickupType = stop.PickupType,
+                        Sequence = (short)stop.StopSequence,
+                        TripId = stop.TripId,
+                        TripDestinationId = destinations[stop.Destination].TripDestinationId
+                    });
+                }
                 Console.WriteLine($"\tGenerated {scheduledStops.Count()} SheduledStops (before bulk insert)");
                 context.BulkInsert(scheduledStops,20000);
-                Console.WriteLine($"\tSaved {scheduledStops.Count()} SheduledStops to database");
+                Console.WriteLine($"\t\tSaved {scheduledStops.Count()} SheduledStops to database");
             }
         }
         private static void SaveServiceChanges()
@@ -297,6 +334,8 @@ namespace EdmontonTransit
 
         private static void SaveData()
         {
+            DateTime start = DateTime.Now;
+            SaveTransitCenters();
             SaveBusRoutes();
             SaveBusTransfers();
             SaveBusStops();
@@ -304,8 +343,13 @@ namespace EdmontonTransit
             UpdateBusStops();
             UpdateBusStopsWithLandmarks();
             SaveTrips2();
+            SaveScheduledStopDestinations();
             SaveScheduleStops();
+            SaveServiceChanges();
             Console.WriteLine("Object graphs created - Done Database Setup");
+            DateTime end = DateTime.Now;
+            TimeSpan diff = end - start;
+            Console.WriteLine($"\nTotal Running Time: {diff.TotalSeconds}");
         }
 
         private static void LoadDataFiles()

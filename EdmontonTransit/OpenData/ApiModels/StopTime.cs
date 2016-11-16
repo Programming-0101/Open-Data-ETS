@@ -37,15 +37,29 @@ namespace EdmontonTransit.OpenData.ApiModels
         [Description("Drop off")]
         public BoardingType DropOffType { get; set; }
 
+        private int? _RouteId;
         public int? RouteId
         {
             get
             {
-                int id;
-                if (int.TryParse(StopHeadsign.Split(' ')[0], out id))
-                    return id;
-                else
-                    return null;
+                if (!_RouteId.HasValue)
+                {
+                    int id;
+                    int.TryParse(StopHeadsign.Split(' ')[0], out id);
+                    _RouteId = id;
+                }
+                return _RouteId;
+            }
+        }
+
+        private string _Destination;
+        public string Destination
+        {
+            get
+            {
+                if (_Destination == null)
+                    _Destination = string.Join(" ", StopHeadsign.Split(' ').Skip(1));
+                return _Destination;
             }
         }
     }
